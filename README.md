@@ -1,6 +1,8 @@
 ### ln-plugin-pony
 
-Lightning Network Plugin written in Pony
+A [Lightning Network](https://github.com/lightningnetwork/lightning-rfc) Plugin written in [Pony](https://www.ponylang.io/) :horse:
+
+[Support Pony!](https://opencollective.com/ponyc/donate?referral=36826)  ... :+1: Many thanks! :heart:
 
 ### Installation
 
