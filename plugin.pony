@@ -119,14 +119,3 @@ actor Main
       timers = Timers
       let timer = Timer(Looper, 5_000_000_000, 1_000_000_000)
       timers(consume timer)
-
-    
-      
-        
-      
-
-    
-      
-
-
-    
