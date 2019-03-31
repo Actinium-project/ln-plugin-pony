@@ -18,7 +18,7 @@ $ /path/to/lightningd --conf=/path/to/conf --plugin=/path/to/ln-plugin-pony
 
 ### Running
 
-By default the code contains various `debug`outputs that go to **stderr**, because **stdin** and **stdout** must not be used as the daemon uses them to communicate with the plugin. If you don't want to see those diagnose messages simply mute Debugger's [print function](https://github.com/Actinium-project/ln-plugin-pony/blob/master/plugin.pony#L26) function.
+By default the code contains various `debug`outputs that go to **stderr**, because **stdin** and **stdout** must not be used as the daemon uses them to communicate with the plugin. If you don't want to see those diagnose messages simply mute Debugger's [print function](https://github.com/Actinium-project/ln-plugin-pony/blob/master/plugin.pony#L26).
 
 ### Problems
 
