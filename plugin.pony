@@ -102,7 +102,11 @@ class MessageParser
         | "init" => (InitJsonQuery, recover iso JsonDoc end)
         | "getmanifest" => (ManifestJsonQuery, _prepareManifestAnswerJson())
       else 
-        (InvalidMessage, recover iso JsonDoc end)
+        (LightningEvent, recover iso 
+                                 let returnDoc = JsonDoc
+                                 returnDoc.parse(json.string())?
+                                 returnDoc 
+                                 end)
       end
     else
       (InvalidMessage, recover iso JsonDoc end)
