@@ -19,26 +19,26 @@ primitive Error
 
 type Severity is (Info | Warn | Error) 
 
-class Debugger
+actor Debugger
   let _out: OutStream
 
   new create(out: OutStream) =>
     _out = out
 
-  fun print(severity: Severity, message: String) =>
+  be print(severity: Severity, message: String) =>
     match severity 
       | Info => _out.print("INFO | " + message)
       | Warn => _out.print("WARN | " + message)
       | Error => _out.print("ERROR | " + message)
     end
 
-class Logger
+actor Logger
   let _env: Env
 
   new create(env: Env) =>
     _env = env
 
-  fun print(severity: Severity, message: String) =>
+  be print(severity: Severity, message: String) =>
     try
       let filepath = FilePath(_env.root as AmbientAuth, "ln-plugin-pony.log")?
       with file = CreateFile(filepath) as File do
