@@ -58,7 +58,7 @@ class MessageParser
   let _manifestJson: String = """
               {
                 "jsonrpc": "2.0",
-                "id": 1,
+                "id": 0,
                 "result": {
                   "options": [],
                   "rpcmethods": [],
@@ -80,15 +80,6 @@ class MessageParser
     doc.parse(consume message)?
     _createMessageTuple(consume doc)
 
-  fun _prepareManifestAnswerJson(): JsonDoc iso^ =>
-    try 
-      let doc = recover iso JsonDoc end
-      doc.parse(_manifestJson.clone())?
-      doc
-    else 
-      recover iso JsonDoc end
-    end
-
   // LN daemon sends JSONs with "init" or "getmanifest" methods
   // We answer "init" with an empty JSON message 
   // The "getmanifest" query must be answered with details about
@@ -97,10 +88,11 @@ class MessageParser
   fun _createMessageTuple(doc: JsonDoc): (LightningMessage, JsonDoc iso^) =>
     try
       let json = doc.data as JsonObject
+      _debug.print(Info, "Received: " + json.string())
       let method: String = json.data("method")? as String
       match method
         | "init" => (InitJsonQuery, recover iso JsonDoc end)
-        | "getmanifest" => (ManifestJsonQuery, _prepareManifestAnswerJson())
+        | "getmanifest" => (ManifestJsonQuery, _prepareManifestAnswerJson(json.data("id")? as I64))
       else 
         (LightningEvent, recover iso 
                                  let returnDoc = JsonDoc
@@ -110,6 +102,22 @@ class MessageParser
       end
     else
       (InvalidMessage, recover iso JsonDoc end)
+    end
+
+  fun _prepareManifestAnswerJson(id: I64): JsonDoc iso^ =>
+    try 
+      let doc = JsonDoc
+      doc.parse(_manifestJson)?
+      let json = doc.data as JsonObject
+      json.data("id") = id
+      doc
+      recover iso 
+              let d = JsonDoc
+              d.parse(json.string())?
+              d
+            end
+    else 
+      recover iso JsonDoc end
     end
 
 // Process incoming JSON messages via stdin and
