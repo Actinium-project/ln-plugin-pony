@@ -24,11 +24,11 @@ actor Debugger
     _out = out
 
   be print(severity: Severity, message: String) =>
-  match severity 
-    | Info => _out.print("INFO | " + message)
-    | Warn => _out.print("WARN | " + message)
-    | Error => _out.print("ERROR | " + message)
-  end
+    match severity 
+      | Info => _out.print("INFO | " + message)
+      | Warn => _out.print("WARN | " + message)
+      | Error => _out.print("ERROR | " + message)
+    end
 
 actor LightningClient
   let _env: Env
@@ -41,11 +41,11 @@ actor LightningClient
     _debug.print(Info, "LN Client started")
 
   be send(messageType: LightningMessage, json: JsonDoc iso) =>
-      let message = json.string().clone()
-      match messageType
-        | InitJsonQuery => _send(_emptyJson)
-        | ManifestJsonQuery => _send(consume message)
-      end
+    let message = json.string().clone()
+    match messageType
+      | InitJsonQuery => _send(_emptyJson)
+      | ManifestJsonQuery => _send(consume message)
+    end
 
   fun _send(message: String) =>
     _env.out.print(message)
@@ -146,12 +146,12 @@ class InputHandler is InputNotify
     end
 
   fun ref _updatePartialJson(message: String) =>
-      _currentJson = recover 
-                      let newJson = String(_currentJson.size() + message.size())
-                      newJson.append(_currentJson)
-                      newJson.append(message)
-                      newJson
-                    end
+    _currentJson = recover 
+                    let newJson = String(_currentJson.size() + message.size())
+                    newJson.append(_currentJson)
+                    newJson.append(message)
+                    newJson
+                  end
 
   fun isJsonComplete(): Bool =>
     try
@@ -183,11 +183,11 @@ class Looper is TimerNotify
     true
 
 actor Main
-    let plugin: Plugin
-    let timers: Timers
-    
-    new create(env: Env) =>
-      plugin = Plugin(env)
-      timers = Timers
-      let timer = Timer(Looper, 5_000_000_000, 5_000_000_000)
-      timers(consume timer)
+  let plugin: Plugin
+  let timers: Timers
+  
+  new create(env: Env) =>
+    plugin = Plugin(env)
+    timers = Timers
+    let timer = Timer(Looper, 5_000_000_000, 5_000_000_000)
+    timers(consume timer)
