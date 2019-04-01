@@ -1,5 +1,7 @@
 use "json"
 use "time"
+use "files"
+
 // Lightning Daemon messages
 primitive InitJsonQuery
 primitive ManifestJsonQuery
@@ -17,27 +19,48 @@ primitive Error
 
 type Severity is (Info | Warn | Error) 
 
-actor Debugger
+class Debugger
   let _out: OutStream
 
   new create(out: OutStream) =>
     _out = out
 
-  be print(severity: Severity, message: String) =>
+  fun print(severity: Severity, message: String) =>
     match severity 
       | Info => _out.print("INFO | " + message)
       | Warn => _out.print("WARN | " + message)
       | Error => _out.print("ERROR | " + message)
     end
 
+class Logger
+  let _env: Env
+
+  new create(env: Env) =>
+    _env = env
+
+  fun print(severity: Severity, message: String) =>
+    try
+      let filepath = FilePath(_env.root as AmbientAuth, "ln-plugin-pony.log")?
+      with file = CreateFile(filepath) as File do
+        match severity 
+          | Info => file.print("INFO | " + message)
+          | Warn => file.print("WARN | " + message)
+          | Error => file.print("ERROR | " + message)
+        end
+      end
+    end
+    
+
 actor LightningClient
   let _env: Env
   let _debug: Debugger
   let _emptyJson: String = "{}"
+  let _logger: Logger
 
   new create(env: Env) =>
     _env = env
     _debug = Debugger(env.err)
+    _logger = Logger(env)
     _debug.print(Info, "LN Client started")
 
   be send(messageType: LightningMessage, json: JsonDoc iso) =>
@@ -47,9 +70,10 @@ actor LightningClient
       | ManifestJsonQuery => _send(consume message)
     end
 
-  fun _send(message: String) =>
+  fun ref _send(message: String) =>
     _env.out.print(message)
     _debug.print(Info, "Sent: " + message)
+    _logger.print(Info, message)
 
 
 class MessageParser
@@ -128,10 +152,12 @@ class InputHandler is InputNotify
   let _parser: MessageParser
   let _client: LightningClient
   let _debug: Debugger
+  let _logger: Logger
   var _currentJson: String = ""
 
   new create(env: Env) =>
     _env = env
+    _logger = Logger(env)
     _debug = Debugger(_env.err)
     _parser = MessageParser(_env.err)
     _client = LightningClient(_env)
@@ -145,10 +171,10 @@ class InputHandler is InputNotify
         _currentJson = ""
         (let messageType: LightningMessage, let message: JsonDoc iso) = _parser.parse(consume validJsonString)?
         match messageType
-        | InvalidMessage => _debug.print(Warn, "message invalid")
+        | InvalidMessage => _logger.print(Warn, "message invalid")
         | InitJsonQuery => _client.send(InitJsonQuery, consume message)
         | ManifestJsonQuery => _client.send(ManifestJsonQuery, consume message)
-        | LightningEvent => _debug.print(Info, "Received: " + message.string())
+        | LightningEvent => _logger.print(Info, "Received: " + message.string())
         end
       end
     end
@@ -197,5 +223,5 @@ actor Main
   new create(env: Env) =>
     plugin = Plugin(env)
     timers = Timers
-    let timer = Timer(Looper, 5_000_000_000, 5_000_000_000)
+    let timer = Timer(Looper, 0, 5_000_000_000)
     timers(consume timer)
